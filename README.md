@@ -1,5 +1,7 @@
 # Algorithmic Challenges — C++17 + Differential Testing
 
+[![Tests](https://github.com/jaykrukar/algorithmic-challenges/actions/workflows/tests.yml/badge.svg)](https://github.com/jaykrukar/algorithmic-challenges/actions/workflows/tests.yml)
+
 Two newly authored **portfolio exercises** with optimized C++17 reference solutions, written problem statements, Python slow oracles, and deterministic randomized test generation.
 
 > These problems were created as portfolio exercises. I **have not verified** that no equivalent problem exists online. No claims of contest placements, judging appointments, or prior publications.
