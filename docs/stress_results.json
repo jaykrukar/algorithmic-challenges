@@ -1,0 +1,6 @@
+{
+  "bounded_jump_random_cases": 500,
+  "temporal_relays_random_cases": 500,
+  "deterministic_edge_cases": 4,
+  "seed": 91
+}
