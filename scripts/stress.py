@@ -1,5 +1,6 @@
-"""Compile both C++ references and compare with independent Python oracles."""
+"""Compile all C++ references and compare them with independent Python oracles."""
 import argparse
+from itertools import combinations
 from pathlib import Path
 import random
 import subprocess
@@ -52,12 +53,23 @@ def oracle_relays(n: int, edges: list[tuple[int,int,int,int,int]]) -> int:
     return -1 if dist[n-1] == inf else dist[n-1]
 
 
+def oracle_intervals(intervals: list[tuple[int, int, int]]) -> int:
+    best = 0
+    for count in range(1, len(intervals) + 1):
+        for chosen in combinations(intervals, count):
+            ordered = sorted(chosen)
+            if all(ordered[i - 1][1] <= ordered[i][0] for i in range(1, len(ordered))):
+                best = max(best, sum(item[2] for item in ordered))
+    return best
+
+
 def stress(iterations: int, seed: int) -> dict[str, int]:
     rng = random.Random(seed)
     with tempfile.TemporaryDirectory() as temp:
         folder = Path(temp)
         jump_bin = compile_reference("bounded-jump", folder)
         relay_bin = compile_reference("temporal-relays", folder)
+        interval_bin = compile_reference("weighted-intervals", folder)
         for case in range(iterations):
             n = rng.randint(1, 35)
             k = rng.randint(1, n)
@@ -77,12 +89,30 @@ def stress(iterations: int, seed: int) -> dict[str, int]:
             expected_relay = oracle_relays(n, edges)
             assert actual_relay == expected_relay, (
                 f"temporal-relays case={case} seed={seed} expected={expected_relay} actual={actual_relay}")
+            intervals = []
+            for _ in range(rng.randint(0, 12)):
+                start = rng.randint(0, 20)
+                end = rng.randint(start + 1, 22)
+                intervals.append((start, end, rng.randint(-20, 30)))
+            interval_input = str(len(intervals)) + "\n" + "".join(
+                f"{start} {end} {value}\n" for start, end, value in intervals
+            )
+            actual_intervals = int(run(interval_bin, interval_input))
+            expected_intervals = oracle_intervals(intervals)
+            assert actual_intervals == expected_intervals, (
+                f"weighted-intervals case={case} seed={seed} "
+                f"expected={expected_intervals} actual={actual_intervals} intervals={intervals}")
         assert run(jump_bin, "1 1\n-42\n") == "-42 0"
         assert run(jump_bin, "5 2\n2 100 -4 3 5\n") == "3 2"
         assert run(relay_bin, "3 3\n1 2 2 4 3\n2 3 6 5 1\n1 3 20 1 0\n") == "7"
         assert run(relay_bin, "2 0\n") == "-1"
+        assert run(interval_bin, "0\n") == "0"
+        assert run(interval_bin, "3\n1 3 5\n3 5 6\n2 6 10\n") == "11"
+        assert run(interval_bin, "2\n1 4 -5\n4 7 -2\n") == "0"
+        assert run(interval_bin, "3\n0 3 5\n1 2 9\n3 4 4\n") == "13"
     return {"bounded_jump_random_cases": iterations, "temporal_relays_random_cases": iterations,
-            "deterministic_edge_cases": 4, "seed": seed}
+            "weighted_intervals_random_cases": iterations,
+            "deterministic_edge_cases": 8, "seed": seed}
 
 
 def main():
