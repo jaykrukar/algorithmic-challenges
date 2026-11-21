@@ -1,6 +1,7 @@
 {
   "bounded_jump_random_cases": 500,
   "temporal_relays_random_cases": 500,
-  "deterministic_edge_cases": 4,
+  "weighted_intervals_random_cases": 500,
+  "deterministic_edge_cases": 8,
   "seed": 91
 }
